@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Button, Container, TextField } from '@mui/material';
+import { fetchPostData } from '../../../client/client';
 
 const AuthLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState('');
 
   const validateEmail = () => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -15,12 +18,13 @@ const AuthLogin = () => {
     return password.length >= 6 && password.length <= 15;
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Reset previous errors
     setErrors({ email: '', password: '' });
 
     // Validation
     if (!validateEmail()) {
-      setErrors((prevErrors) => ({ ...prevErrors, email: 'Invalide email format' }));
+      setErrors((prevErrors) => ({ ...prevErrors, email: 'Invalid email format' }));
       return;
     }
 
@@ -30,7 +34,18 @@ const AuthLogin = () => {
     }
 
     // Add your login logic here
-    console.log('Logging in with:', email, password);
+    fetchPostData('/auth/token', { email, password })
+      .then((response) => {
+        const { token } = response.data;
+        setLoginError('');
+        setLoginSuccess('Welcome to the App.');
+        localStorage.setItem('token', token);
+        //navigate('/');
+      })
+      .catch((error) => {
+        console.error('Error logging in: ', error);
+        setLoginError('An error occured during login');
+      });
   };
 
   return (
@@ -58,6 +73,8 @@ const AuthLogin = () => {
       <Button variant="contained" color="primary" fullWidth onClick={handleLogin}>
         Login
       </Button>
+      {loginError && <p style={{ color: 'red' }}>{loginError}</p>}
+      {loginSuccess && <p style={{ color: 'red' }}>{loginSuccess}</p>}
     </Container>
   );
 };
