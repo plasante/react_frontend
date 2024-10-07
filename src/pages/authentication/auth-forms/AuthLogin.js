@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Button, Container, TextField } from '@mui/material';
 import { fetchPostData } from '../../../client/client';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const AuthLogin = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +10,15 @@ const AuthLogin = () => {
   const [errors, setErrors] = useState({ email: '', password: '' });
   const [loginError, setLoginError] = useState('');
   const [loginSuccess, setLoginSuccess] = useState('');
+  const navigate = useNavigate();
+
+  // This is executed when the application mount
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('token');
+    if (isLoggedIn) {
+      navigate('/');
+    }
+  }, []); // The empty dependency array ensures that the effect runs only once, on mount
 
   const validateEmail = () => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -40,11 +51,12 @@ const AuthLogin = () => {
         setLoginError('');
         setLoginSuccess('Welcome to the App.');
         localStorage.setItem('token', token);
-        //navigate('/');
+        navigate('/');
       })
       .catch((error) => {
         console.error('Error logging in: ', error);
         setLoginError('An error occured during login');
+        setLoginSuccess('');
       });
   };
 
